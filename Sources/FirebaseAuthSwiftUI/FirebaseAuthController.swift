@@ -17,7 +17,7 @@ final public class FirebaseAuthController: NSObject {
     
     /// Presents the Sign in with Apple sheet
     /// - Parameter completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
-    func continueWithApple(completion: @escaping (Result<User?, Error>) -> ()) {
+    public func continueWithApple(completion: @escaping (Result<User?, Error>) -> ()) {
         authState = .authenticating
         
         self.onAuthentication = completion
