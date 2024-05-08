@@ -12,4 +12,5 @@ public enum SignInWithAppleError: Error {
     case noTokenString
     case noAppleIdCredential
     case noAuthDataResult
+    case noCurrentUser
 }

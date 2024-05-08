@@ -16,7 +16,8 @@ final public class FirebaseAuthController: NSObject {
     public var user: User?
     
     /// Presents the Sign in with Apple sheet
-    public func continueWithApple() async throws -> SignInWithAppleResult {
+    @discardableResult
+    public func continueWithApple() async throws -> User {
         let result = try await withCheckedThrowingContinuation({ continuation in
             continueWithApple { result in
                 continuation.resume(with: result)
@@ -33,10 +34,10 @@ final public class FirebaseAuthController: NSObject {
     // MARK: - Internal
     
     var authStateHandler: AuthStateDidChangeListenerHandle?
-    var onContinueWithApple: ((Result<SignInWithAppleResult, Error>) -> ())?
+    var onContinueWithApple: ((Result<User, Error>) -> ())?
     var currentNonce: String?
     
-    func continueWithApple(completion: @escaping (Result<SignInWithAppleResult, Error>) -> ()) {
+    func continueWithApple(completion: @escaping (Result<User, Error>) -> ()) {
         authState = .authenticating
         
         self.onContinueWithApple = completion

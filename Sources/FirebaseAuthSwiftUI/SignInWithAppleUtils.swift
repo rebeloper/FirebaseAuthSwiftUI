@@ -55,7 +55,7 @@ public struct SignInWithAppleUtils {
         return hashString
     }
     
-    static func signInToFirebase(with token: SignInWithAppleToken, completion: @escaping  (Result<SignInWithAppleResult, Error>) -> ()) {
+    static func signInToFirebase(with token: SignInWithAppleToken, completion: @escaping  (Result<User, Error>) -> ()) {
         
         let providerID = "apple.com"
         let idTokenString = token.idTokenString
@@ -64,7 +64,7 @@ public struct SignInWithAppleUtils {
         let credential = OAuthProvider.credential(withProviderID: providerID,
                                                   idToken: idTokenString,
                                                   rawNonce: nonce)
-        Auth.auth().signIn(with: credential) { (authDataResult, err) in
+        Auth.auth().signIn(with: credential) { (_, err) in
             if let err = err {
                 // Error. If error.code == .MissingOrInvalidNonce, make sure
                 // you're sending the SHA256-hashed nonce as a hex string with
@@ -72,16 +72,27 @@ public struct SignInWithAppleUtils {
                 completion(.failure(err))
                 return
             }
-            guard let authDataResult = authDataResult else {
-                completion(.failure(SignInWithAppleError.noAuthDataResult))
-                return
+            let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
+            let givenName = token.appleIDCredential.fullName?.givenName
+            let middleName = token.appleIDCredential.fullName?.middleName
+            let familyName = token.appleIDCredential.fullName?.familyName
+            changeRequest?.displayName = "\(givenName != nil ? "\(givenName!) " : "")\(middleName != nil ? "\(middleName!) " : "")\(familyName != nil ? "\(familyName!)" : "")"
+            
+            changeRequest?.commitChanges { error in
+                if let err = err {
+                    completion(.failure(err))
+                    return
+                }
+                guard let user = Auth.auth().currentUser else {
+                    completion(.failure(SignInWithAppleError.noCurrentUser))
+                    return
+                }
+                completion(.success(user))
             }
-            let result = SignInWithAppleResult(token: token, uid: authDataResult.user.uid)
-            completion(.success(result))
         }
     }
     
-    static func createToken(from authorization: ASAuthorization, currentNonce: String?, completion:  ((Result<SignInWithAppleResult, Error>) -> ())?) {
+    static func createToken(from authorization: ASAuthorization, currentNonce: String?, completion:  ((Result<User, Error>) -> ())?) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {
                 fatalError("Invalid state: A login callback was received, but no login request was sent.")
@@ -98,8 +109,8 @@ public struct SignInWithAppleUtils {
             let token = SignInWithAppleToken(appleIDCredential: appleIDCredential, nonce: nonce, idTokenString: idTokenString)
             signInToFirebase(with: token) { result in
                 switch result {
-                case .success(let firebaseSignInWithAppleResult):
-                    completion?(.success(firebaseSignInWithAppleResult))
+                case .success(let user):
+                    completion?(.success(user))
                 case .failure(let err):
                     completion?(.failure(err))
                 }
