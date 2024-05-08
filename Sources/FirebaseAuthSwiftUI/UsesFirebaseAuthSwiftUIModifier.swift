@@ -33,7 +33,6 @@ struct UsesFirebaseAuthSwiftUIModifier: ViewModifier {
 public extension View {
     /// Sets up FirebaseAuthSwiftUI and gives access to a newly created `User`
     /// - Parameter firestoreUserCollectionPath: the collection path to the user document in Firestore
-    /// - Parameter newUserResult: completion with a `Result` containing the User object, the user is `nil` if it is not new
     func usesFirebaseAuthSwiftUI(firestoreUserCollectionPath: String) -> some View {
         modifier(UsesFirebaseAuthSwiftUIModifier(path: firestoreUserCollectionPath))
     }

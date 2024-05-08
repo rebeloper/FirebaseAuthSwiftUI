@@ -16,27 +16,7 @@ final public class FirebaseAuthController: NSObject {
     public var user: User?
     
     /// Presents the Sign in with Apple sheet
-    @discardableResult
-    public func continueWithApple() async throws -> User? {
-        let result = try await withCheckedThrowingContinuation({ continuation in
-            continueWithApple { result in
-                continuation.resume(with: result)
-            }
-        })
-        return result
-    }
-    
-    /// Signs the user out
-    public func signOut() throws {
-        try Auth.auth().signOut()
-    }
-    
-    // MARK: - Internal
-    
-    var authStateHandler: AuthStateDidChangeListenerHandle?
-    var onAuthentication: ((Result<User?, Error>) -> ())?
-    var currentNonce: String?
-    
+    /// - Parameter completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
     func continueWithApple(completion: @escaping (Result<User?, Error>) -> ()) {
         authState = .authenticating
         
@@ -54,6 +34,17 @@ final public class FirebaseAuthController: NSObject {
         authorizationController.presentationContextProvider = self
         authorizationController.performRequests()
     }
+    
+    /// Signs the user out
+    public func signOut() throws {
+        try Auth.auth().signOut()
+    }
+    
+    // MARK: - Internal
+    
+    var authStateHandler: AuthStateDidChangeListenerHandle?
+    var onAuthentication: ((Result<User?, Error>) -> ())?
+    var currentNonce: String?
     
     func startListeningToAuthChanges(path: String) {
         authStateHandler = Auth.auth().addStateDidChangeListener { _, user in
