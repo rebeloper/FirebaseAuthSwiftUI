@@ -13,6 +13,7 @@ import FirebaseAuth
 final public class FirebaseAuthController: NSObject {
     
     public var authState: AuthState = .loading
+    public var user: User?
     
     /// Presents the Sign in with Apple sheet
     public func continueWithApple() async throws -> SignInWithAppleResult {
@@ -55,6 +56,7 @@ final public class FirebaseAuthController: NSObject {
     
     func startListeningToAuthChanges() {
         authStateHandler = Auth.auth().addStateDidChangeListener { _, user in
+            self.user = user
             if self.authState != .authenticating {
                 self.authState = user != nil ? .authenticated : .notAuthenticated
             }
