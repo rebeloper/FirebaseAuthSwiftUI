@@ -102,7 +102,7 @@ public struct SignInWithAppleUtils {
         }
     }
     
-    static func createToken(from authorization: ASAuthorization, currentNonce: String?, completion:  ((Result<User, Error>) -> ())?) {
+    static func createToken(from authorization: ASAuthorization, currentNonce: String?, completion:  ((Result<User?, Error>) -> ())?) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {
                 fatalError("Invalid state: A login callback was received, but no login request was sent.")

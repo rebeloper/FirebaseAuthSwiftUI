@@ -17,7 +17,7 @@ final public class FirebaseAuthController: NSObject {
     
     /// Presents the Sign in with Apple sheet
     @discardableResult
-    public func continueWithApple() async throws -> User {
+    public func continueWithApple() async throws -> User? {
         let result = try await withCheckedThrowingContinuation({ continuation in
             continueWithApple { result in
                 continuation.resume(with: result)
@@ -34,13 +34,13 @@ final public class FirebaseAuthController: NSObject {
     // MARK: - Internal
     
     var authStateHandler: AuthStateDidChangeListenerHandle?
-    var onContinueWithApple: ((Result<User, Error>) -> ())?
+    var onAuthentication: ((Result<User?, Error>) -> ())?
     var currentNonce: String?
     
-    func continueWithApple(completion: @escaping (Result<User, Error>) -> ()) {
+    func continueWithApple(completion: @escaping (Result<User?, Error>) -> ()) {
         authState = .authenticating
         
-        self.onContinueWithApple = completion
+        self.onAuthentication = completion
         
         let nonce = SignInWithAppleUtils.randomNonceString()
         currentNonce = nonce
@@ -55,11 +55,26 @@ final public class FirebaseAuthController: NSObject {
         authorizationController.performRequests()
     }
     
-    func startListeningToAuthChanges() {
+    func startListeningToAuthChanges(path: String) {
         authStateHandler = Auth.auth().addStateDidChangeListener { _, user in
             self.user = user
             if self.authState != .authenticating {
                 self.authState = user != nil ? .authenticated : .notAuthenticated
+            }
+            if user != nil {
+                FirebaseAuthUtils.isNewUserInFirestore(path: path, uid: user!.uid) { result in
+                    switch result {
+                    case .success(let isNew):
+                        print("isNew: \(isNew)")
+                        if !isNew {
+                            self.authState = .authenticated
+                        }
+                        self.onAuthentication?(.success(isNew ? user : nil))
+                    case .failure(let failure):
+                        self.authState = .notAuthenticated
+                        self.onAuthentication?(.failure(failure))
+                    }
+                }
             }
         }
     }
