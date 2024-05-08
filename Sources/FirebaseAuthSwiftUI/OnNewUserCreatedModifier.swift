@@ -23,6 +23,7 @@ public struct OnNewUserCreatedModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .onChange(of: firebaseAuth.user) { _, user in
+                print("user: \(user)")
                 guard let user else { return }
                 FirebaseAuthUtils.isNewUserInFirestore(path: path, uid: user.uid) { result in
                     switch result {
