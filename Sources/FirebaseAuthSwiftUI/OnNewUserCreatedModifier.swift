@@ -13,9 +13,9 @@ public struct OnNewUserCreatedModifier: ViewModifier {
     @Environment(\.firebaseAuth) private var firebaseAuth
     
     private let path: String
-    private let newValue: (Result<User?, Error>) -> Void
+    private let newValue: ((Result<User?, Error>, FirebaseAuthController)) -> Void
     
-    public init(path: String, newValue: @escaping (Result<User?, Error>) -> Void) {
+    public init(path: String, newValue: @escaping ((Result<User?, Error>, FirebaseAuthController)) -> Void) {
         self.path = path
         self.newValue = newValue
     }
@@ -30,10 +30,10 @@ public struct OnNewUserCreatedModifier: ViewModifier {
                         if !isNew {
                             firebaseAuth.authState = .authenticated
                         }
-                        self.newValue(.success(isNew ? user : nil))
+                        self.newValue((.success(isNew ? user : nil), firebaseAuth))
                     case .failure(let failure):
                         firebaseAuth.authState = .notAuthenticated
-                        self.newValue(.failure(failure))
+                        self.newValue((.failure(failure), firebaseAuth))
                     }
                 }
             }
@@ -44,7 +44,7 @@ public extension View {
     /// Listens to new a User creation with Firebase Auth
     /// - Parameter collectionPath: the collection path to the user document in Firestore
     /// - Parameter newValue: completion with the User object, returns `nil` if the user is not new
-    func onNewUserCreated(collectionPath: String, newValue: @escaping (Result<User?, Error>) -> Void) -> some View {
+    func onNewUserCreated(collectionPath: String, newValue: @escaping ((Result<User?, Error>, FirebaseAuthController)) -> Void) -> some View {
         modifier(OnNewUserCreatedModifier(path: collectionPath, newValue: newValue))
     }
 }
