@@ -24,11 +24,15 @@ public struct OnNewUserCreatedModifier: ViewModifier {
         content
             .onChange(of: firebaseAuth.user) { _, user in
                 guard let user else { return }
-                FirebaseAuthUtils.isNewUserInFirestore(path: "", uid: user.uid) { result in
+                FirebaseAuthUtils.isNewUserInFirestore(path: path, uid: user.uid) { result in
                     switch result {
                     case .success(let isNew):
+                        if !isNew {
+                            firebaseAuth.authState = .authenticated
+                        }
                         self.newValue(.success(isNew ? user : nil))
                     case .failure(let failure):
+                        firebaseAuth.authState = .notAuthenticated
                         self.newValue(.failure(failure))
                     }
                 }
