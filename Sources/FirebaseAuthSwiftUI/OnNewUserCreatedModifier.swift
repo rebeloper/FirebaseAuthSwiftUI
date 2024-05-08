@@ -27,6 +27,7 @@ public struct OnNewUserCreatedModifier: ViewModifier {
                 FirebaseAuthUtils.isNewUserInFirestore(path: path, uid: user.uid) { result in
                     switch result {
                     case .success(let isNew):
+                        print("isNew: \(isNew)")
                         if !isNew {
                             firebaseAuth.authState = .authenticated
                         }
