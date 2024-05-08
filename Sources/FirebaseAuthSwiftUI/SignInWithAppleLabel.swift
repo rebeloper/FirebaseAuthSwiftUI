@@ -40,6 +40,6 @@ public struct SignInWithAppleLabel: View {
             .bold()
             .foregroundColor(.white)
             .background(.black)
-            .cornerRadius(6)
+            .cornerRadius(9)
     }
 }
