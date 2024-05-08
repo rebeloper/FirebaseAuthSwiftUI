@@ -1,5 +1,5 @@
 //
-//  UsesFirebaseAuthSwiftUIModifier.swift
+//  FirestoreUserCollectionPathModifier.swift
 //
 //
 //  Created by Alex Nagy on 08.05.2024.
@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseAuth
 
-struct UsesFirebaseAuthSwiftUIModifier: ViewModifier {
+struct FirestoreUserCollectionPathModifier: ViewModifier {
     
     @State private var controller = FirebaseAuthController()
     
@@ -31,10 +31,10 @@ struct UsesFirebaseAuthSwiftUIModifier: ViewModifier {
 }
 
 public extension View {
-    /// Sets up FirebaseAuthSwiftUI and gives access to a newly created `User`
-    /// - Parameter firestoreUserCollectionPath: the collection path to the user document in Firestore
-    func usesFirebaseAuthSwiftUI(firestoreUserCollectionPath: String) -> some View {
-        modifier(UsesFirebaseAuthSwiftUIModifier(path: firestoreUserCollectionPath))
+    /// Sets up FirebaseAuthSwiftUI and the collection path to the user documents in Firestore. Put this onto the root of your app
+    /// - Parameter path: the collection path to the user documents in Firestore
+    func configureFirebaseAuthSwiftUIWith(firestoreUserCollectionPath path: String) -> some View {
+        modifier(FirestoreUserCollectionPathModifier(path: path))
     }
 }
 

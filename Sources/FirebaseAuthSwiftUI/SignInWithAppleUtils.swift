@@ -55,7 +55,7 @@ public struct SignInWithAppleUtils {
         return hashString
     }
     
-    static func signInToFirebase(with token: SignInWithAppleToken, completion: @escaping  (Result<User, Error>) -> ()) {
+    static func signInToFirebase(with token: SignInWithAppleToken, completion: @escaping  (Result<User?, Error>) -> ()) {
         
         let providerID = "apple.com"
         let idTokenString = token.idTokenString
@@ -78,7 +78,7 @@ public struct SignInWithAppleUtils {
                 return
             }
             guard user.displayName != nil else {
-                completion(.success(user))
+                completion(.success(nil))
                 return
             }
             
@@ -93,11 +93,11 @@ public struct SignInWithAppleUtils {
                     completion(.failure(err))
                     return
                 }
-                guard let user = Auth.auth().currentUser else {
+                guard Auth.auth().currentUser != nil else {
                     completion(.failure(SignInWithAppleError.noCurrentUser))
                     return
                 }
-                completion(.success(user))
+                completion(.success(nil))
             }
         }
     }
@@ -119,8 +119,8 @@ public struct SignInWithAppleUtils {
             let token = SignInWithAppleToken(appleIDCredential: appleIDCredential, nonce: nonce, idTokenString: idTokenString)
             signInToFirebase(with: token) { result in
                 switch result {
-                case .success(let user):
-                    completion?(.success(user))
+                case .success(_):
+                    completion?(.success(nil))
                 case .failure(let err):
                     completion?(.failure(err))
                 }
