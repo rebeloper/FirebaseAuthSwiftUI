@@ -19,7 +19,6 @@ final public class FirebaseAuthController: NSObject {
     /// - Parameter completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
     public func continueWithApple(completion: @escaping (Result<User?, Error>) -> ()) {
         authState = .authenticating
-        
         self.onAuthentication = completion
         
         let nonce = SignInWithAppleUtils.randomNonceString()
@@ -33,6 +32,42 @@ final public class FirebaseAuthController: NSObject {
         authorizationController.delegate = self
         authorizationController.presentationContextProvider = self
         authorizationController.performRequests()
+    }
+    
+    /// Creates a Firebase user with email and password
+    /// - Parameters:
+    ///   - email: the email
+    ///   - password: the password
+    ///   - completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
+    public func createUser(withEmail email: String, password: String, completion: @escaping (Result<User?, Error>) -> ()) {
+        authState = .authenticating
+        self.onAuthentication = completion
+        
+        Auth.auth().createUser(withEmail: email, password: password) { _, error in
+            if let error {
+                self.onAuthentication?(.failure(error))
+                return
+            }
+            self.onAuthentication?(.success(nil))
+        }
+    }
+    
+    /// Signs in a Firebase user with email and password
+    /// - Parameters:
+    ///   - email: the email
+    ///   - password: the password
+    ///   - completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
+    public func signIn(withEmail email: String, password: String, completion: @escaping (Result<User?, Error>) -> ()) {
+        authState = .authenticating
+        self.onAuthentication = completion
+        
+        Auth.auth().signIn(withEmail: email, password: password) { _, error in
+            if let error {
+                self.onAuthentication?(.failure(error))
+                return
+            }
+            self.onAuthentication?(.success(nil))
+        }
     }
     
     /// Signs the user out
