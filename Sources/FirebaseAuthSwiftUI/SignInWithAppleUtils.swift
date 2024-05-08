@@ -72,6 +72,16 @@ public struct SignInWithAppleUtils {
                 completion(.failure(err))
                 return
             }
+            
+            guard let user = Auth.auth().currentUser else {
+                completion(.failure(SignInWithAppleError.noCurrentUser))
+                return
+            }
+            guard user.displayName != nil else {
+                completion(.success(user))
+                return
+            }
+            
             let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
             let givenName = token.appleIDCredential.fullName?.givenName
             let middleName = token.appleIDCredential.fullName?.middleName

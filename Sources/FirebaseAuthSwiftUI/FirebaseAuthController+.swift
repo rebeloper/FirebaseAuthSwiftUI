@@ -19,6 +19,7 @@ extension FirebaseAuthController: ASAuthorizationControllerDelegate, ASAuthoriza
     
     @MainActor
     public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        authState = .notAuthenticated
         onContinueWithApple?(.failure(error))
     }
     
