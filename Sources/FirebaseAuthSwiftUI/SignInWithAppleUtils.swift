@@ -78,6 +78,7 @@ public struct SignInWithAppleUtils {
                 return
             }
             guard user.displayName != nil else {
+                print(1234)
                 completion(.success(nil))
                 return
             }
