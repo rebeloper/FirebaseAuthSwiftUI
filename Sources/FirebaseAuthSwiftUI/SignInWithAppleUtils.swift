@@ -89,8 +89,8 @@ public struct SignInWithAppleUtils {
             changeRequest?.displayName = "\(givenName != nil ? "\(givenName!) " : "")\(middleName != nil ? "\(middleName!) " : "")\(familyName != nil ? "\(familyName!)" : "")"
             
             changeRequest?.commitChanges { error in
-                if let err = err {
-                    completion(.failure(err))
+                if let error = error {
+                    completion(.failure(error))
                     return
                 }
                 guard Auth.auth().currentUser != nil else {
