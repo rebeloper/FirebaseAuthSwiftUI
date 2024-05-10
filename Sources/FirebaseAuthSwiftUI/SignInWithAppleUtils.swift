@@ -78,27 +78,20 @@ public struct SignInWithAppleUtils {
                 return
             }
             
-            let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
+            let changeRequest = user.createProfileChangeRequest()
+            
             let givenName = token.appleIDCredential.fullName?.givenName
             let middleName = token.appleIDCredential.fullName?.middleName
             let familyName = token.appleIDCredential.fullName?.familyName
             var displayName = "\(givenName != nil ? "\(givenName!) " : "")\(middleName != nil ? "\(middleName!) " : "")\(familyName != nil ? "\(familyName!)" : "")"
-            print("name: \(displayName)")
-            if displayName == "" {
-                displayName = "Alex"
-            }
-            changeRequest?.displayName = displayName
             
-            changeRequest?.commitChanges { error in
+            changeRequest.displayName = displayName
+            
+            changeRequest.commitChanges { error in
                 if let error = error {
                     completion(.failure(error))
                     return
                 }
-                guard Auth.auth().currentUser != nil else {
-                    completion(.failure(SignInWithAppleError.noCurrentUser))
-                    return
-                }
-                print("saved")
                 completion(.success(nil))
             }
         }
