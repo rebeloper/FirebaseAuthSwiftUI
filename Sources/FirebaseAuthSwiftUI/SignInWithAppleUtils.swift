@@ -87,7 +87,12 @@ public struct SignInWithAppleUtils {
             let givenName = token.appleIDCredential.fullName?.givenName
             let middleName = token.appleIDCredential.fullName?.middleName
             let familyName = token.appleIDCredential.fullName?.familyName
-            changeRequest?.displayName = "\(givenName != nil ? "\(givenName!) " : "")\(middleName != nil ? "\(middleName!) " : "")\(familyName != nil ? "\(familyName!)" : "")"
+            var displayName = "\(givenName != nil ? "\(givenName!) " : "")\(middleName != nil ? "\(middleName!) " : "")\(familyName != nil ? "\(familyName!)" : "")"
+            print("name: \(displayName)")
+            if displayName == "" {
+                displayName = "Alex"
+            }
+            changeRequest?.displayName = displayName
             
             changeRequest?.commitChanges { error in
                 if let error = error {
@@ -98,6 +103,7 @@ public struct SignInWithAppleUtils {
                     completion(.failure(SignInWithAppleError.noCurrentUser))
                     return
                 }
+                print("saved")
                 completion(.success(nil))
             }
         }
