@@ -9,10 +9,11 @@ import SwiftUI
 import AuthenticationServices
 import FirebaseAuth
 
-final public class FirebaseAuthController: NSObject, ObservableObject {
+@Observable
+final public class FirebaseAuthController: NSObject {
     
-    @Published public var authState: AuthState = .loading
-    @Published public var user: User?
+    public var authState: AuthState = .loading
+    public var user: User?
     
     /// Presents the Sign in with Apple sheet
     /// - Parameter completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
