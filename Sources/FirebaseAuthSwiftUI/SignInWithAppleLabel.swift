@@ -37,7 +37,6 @@ public struct SignInWithAppleLabel: View {
             .buttonStyle(.plain)
             .padding(.vertical, 14)
             .padding(.horizontal, 18)
-            .bold()
             .foregroundColor(.white)
             .background(.black)
             .cornerRadius(9)

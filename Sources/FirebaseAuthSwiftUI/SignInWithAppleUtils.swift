@@ -83,7 +83,7 @@ public struct SignInWithAppleUtils {
             let givenName = token.appleIDCredential.fullName?.givenName
             let middleName = token.appleIDCredential.fullName?.middleName
             let familyName = token.appleIDCredential.fullName?.familyName
-            var displayName = "\(givenName != nil ? "\(givenName!) " : "")\(middleName != nil ? "\(middleName!) " : "")\(familyName != nil ? "\(familyName!)" : "")"
+            let displayName = "\(givenName != nil ? "\(givenName!) " : "")\(middleName != nil ? "\(middleName!) " : "")\(familyName != nil ? "\(familyName!)" : "")"
             
             changeRequest.displayName = displayName
             

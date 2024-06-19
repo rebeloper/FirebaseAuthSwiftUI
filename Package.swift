@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "FirebaseAuthSwiftUI",
     platforms: [
-        .iOS(.v17), .macOS(.v14)
+        .iOS(.v15), .macOS(.v12)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: Version(10, 25, 0))
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: Version(10, 28, 0))
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
