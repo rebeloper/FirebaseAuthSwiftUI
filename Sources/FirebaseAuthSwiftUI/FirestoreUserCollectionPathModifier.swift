@@ -10,7 +10,7 @@ import FirebaseAuth
 
 struct FirestoreUserCollectionPathModifier: ViewModifier {
     
-    @State private var controller = FirebaseAuthController()
+    @StateObject private var controller = FirebaseAuthController()
     
     private let path: String
     
