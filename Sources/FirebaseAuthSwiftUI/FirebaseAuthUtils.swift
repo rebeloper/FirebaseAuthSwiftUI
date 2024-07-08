@@ -15,12 +15,12 @@ public struct FirebaseAuthUtils {
         reference.document(uid).getDocument { _, error in
             if let error {
                 if error._code == 4865 {
-                    completion(.success(true))
+                    completion(.success(false))
                 } else {
                     completion(.failure(error))
                 }
             } else {
-                completion(.success(false))
+                completion(.success(true))
             }
         }
     }
