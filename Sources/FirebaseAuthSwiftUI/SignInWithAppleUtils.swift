@@ -55,26 +55,23 @@ public struct SignInWithAppleUtils {
         return hashString
     }
     
-    static func signInToFirebase(with token: SignInWithAppleToken, completion: @escaping  (Result<User?, Error>) -> ()) {
+    static func signInToFirebase(with token: SignInWithAppleToken, completion: ((Error?) -> Void)?) {
         
-        let providerID = "apple.com"
         let idTokenString = token.idTokenString
         let nonce = token.nonce
         
-        let credential = OAuthProvider.credential(withProviderID: providerID,
-                                                  idToken: idTokenString,
-                                                  rawNonce: nonce)
-        Auth.auth().signIn(with: credential) { (_, err) in
-            if let err = err {
+        let credential = OAuthProvider.credential(providerID: .apple, idToken: idTokenString, rawNonce: nonce)
+        Auth.auth().signIn(with: credential) { (_, error) in
+            if let error = error {
                 // Error. If error.code == .MissingOrInvalidNonce, make sure
                 // you're sending the SHA256-hashed nonce as a hex string with
                 // your request to Apple.
-                completion(.failure(err))
+                completion?(error)
                 return
             }
             
             guard let user = Auth.auth().currentUser else {
-                completion(.failure(SignInWithAppleError.noCurrentUser))
+                completion?(SignInWithAppleError.noCurrentUser)
                 return
             }
             
@@ -89,43 +86,31 @@ public struct SignInWithAppleUtils {
             
             changeRequest.commitChanges { error in
                 if let error = error {
-                    completion(.failure(error))
+                    completion?(error)
                     return
                 }
-                completion(.success(nil))
             }
         }
     }
     
-    static func createToken(from authorization: ASAuthorization, currentNonce: String?, completion:  ((Result<User?, Error>) -> ())?) {
+    static func createToken(from authorization: ASAuthorization, currentNonce: String?, completion: ((Error?) -> Void)?) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {
                 fatalError("Invalid state: A login callback was received, but no login request was sent.")
             }
             guard let appleIDToken = appleIDCredential.identityToken else {
-                completion?(.failure(SignInWithAppleError.noIdentityToken))
+                completion?(SignInWithAppleError.noIdentityToken)
                 return
             }
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                completion?(.failure(SignInWithAppleError.noTokenString))
+                completion?(SignInWithAppleError.noTokenString)
                 return
             }
             
             let token = SignInWithAppleToken(appleIDCredential: appleIDCredential, nonce: nonce, idTokenString: idTokenString)
-            signInToFirebase(with: token) { result in
-                switch result {
-                case .success(_):
-                    completion?(.success(nil))
-                case .failure(let err):
-                    completion?(.failure(err))
-                }
-            }
-            
+            signInToFirebase(with: token, completion: completion)
         } else {
-            completion?(.failure(SignInWithAppleError.noAppleIdCredential))
+            completion?(SignInWithAppleError.noAppleIdCredential)
         }
     }
 }
-
-
-

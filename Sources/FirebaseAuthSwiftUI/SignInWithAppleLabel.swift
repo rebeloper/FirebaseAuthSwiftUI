@@ -40,5 +40,6 @@ public struct SignInWithAppleLabel: View {
             .foregroundColor(.white)
             .background(.black)
             .cornerRadius(9)
+            .multilineTextAlignment(.leading)
     }
 }

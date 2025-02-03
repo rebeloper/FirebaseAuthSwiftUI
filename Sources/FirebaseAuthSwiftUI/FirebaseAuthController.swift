@@ -8,18 +8,22 @@
 import SwiftUI
 import AuthenticationServices
 import FirebaseAuth
+import FirebaseFirestore
 
 @Observable
 final public class FirebaseAuthController: NSObject {
     
-    public var authState: AuthState = .loading
+    public var state: AuthState = .loading
     public var user: User?
     
     /// Presents the Sign in with Apple sheet
-    /// - Parameter completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
-    public func continueWithApple(completion: @escaping (Result<User?, Error>) -> ()) {
-        authState = .authenticating
+    /// 
+    /// - Parameter options: what should the Profile in Firestore contain upon sign up
+    /// - Parameter completion: completion with an optional `Error`
+    public func continueWithApple(options: [FirestoreProfileOption] = [], completion: ((Error?) -> Void)? = nil) {
+        state = .authenticating
         self.onAuthentication = completion
+        self.profileOptions = options
         
         let nonce = SignInWithAppleUtils.randomNonceString()
         currentNonce = nonce
@@ -34,42 +38,6 @@ final public class FirebaseAuthController: NSObject {
         authorizationController.performRequests()
     }
     
-    /// Creates a Firebase user with email and password
-    /// - Parameters:
-    ///   - email: the email
-    ///   - password: the password
-    ///   - completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
-    public func createUser(withEmail email: String, password: String, completion: @escaping (Result<User?, Error>) -> ()) {
-        authState = .authenticating
-        self.onAuthentication = completion
-        
-        Auth.auth().createUser(withEmail: email, password: password) { _, error in
-            if let error {
-                self.onAuthentication?(.failure(error))
-                return
-            }
-            self.onAuthentication?(.success(nil))
-        }
-    }
-    
-    /// Signs in a Firebase user with email and password
-    /// - Parameters:
-    ///   - email: the email
-    ///   - password: the password
-    ///   - completion: completion with a `Result` containing the User object, the user is `nil` if it is not new
-    public func signIn(withEmail email: String, password: String, completion: @escaping (Result<User?, Error>) -> ()) {
-        authState = .authenticating
-        self.onAuthentication = completion
-        
-        Auth.auth().signIn(withEmail: email, password: password) { _, error in
-            if let error {
-                self.onAuthentication?(.failure(error))
-                return
-            }
-            self.onAuthentication?(.success(nil))
-        }
-    }
-    
     /// Signs the user out
     public func signOut() throws {
         try Auth.auth().signOut()
@@ -78,26 +46,35 @@ final public class FirebaseAuthController: NSObject {
     // MARK: - Internal
     
     var authStateHandler: AuthStateDidChangeListenerHandle?
-    var onAuthentication: ((Result<User?, Error>) -> ())?
+    var onAuthentication: ((Error?) -> ())?
     var currentNonce: String?
+    var profileOptions: [FirestoreProfileOption] = []
     
     func startListeningToAuthChanges(path: String) {
         authStateHandler = Auth.auth().addStateDidChangeListener { _, user in
             self.user = user
-            if self.authState != .authenticating {
-                self.authState = user != nil ? .authenticated : .notAuthenticated
+            if self.state != .authenticating {
+                self.state = user != nil ? .authenticated : .notAuthenticated
             }
             if user != nil {
                 FirebaseAuthUtils.isNewUserInFirestore(path: path, uid: user!.uid) { result in
                     switch result {
                     case .success(let isNew):
                         if !isNew {
-                            self.authState = .authenticated
+                            self.state = .authenticated
+                        } else {
+                            self.saveProfile(user!, path: path, options: self.profileOptions) { error in
+                                if let error {
+                                    self.state = .notAuthenticated
+                                    self.onAuthentication?(error)
+                                    return
+                                }
+                                self.state = .authenticated
+                            }
                         }
-                        self.onAuthentication?(.success(isNew ? user : nil))
-                    case .failure(let failure):
-                        self.authState = .notAuthenticated
-                        self.onAuthentication?(.failure(failure))
+                    case .failure(let error):
+                        self.state = .notAuthenticated
+                        self.onAuthentication?(error)
                     }
                 }
             }
@@ -109,6 +86,28 @@ final public class FirebaseAuthController: NSObject {
         Auth.auth().removeStateDidChangeListener(authStateHandler!)
     }
     
+    func saveProfile(_ user: User, path: String, options: [FirestoreProfileOption], completion: ((Error?) -> Void)?) {
+        let reference = Firestore.firestore().collection(path).document(user.uid)
+        
+        var data: [String: Any] = [:]
+        if options.isEmpty {
+            data["uid"] = user.uid
+            data["displayName"] = user.displayName ?? ""
+        } else {
+            for option in options {
+                switch option {
+                case .uid:
+                    data["uid"] = user.uid
+                case .email:
+                    data["email"] = user.email ?? ""
+                case .displayName:
+                    data["displayName"] = user.displayName ?? ""
+                case .photoURL:
+                    data["photoURL"] = user.photoURL?.absoluteString ?? ""
+                }
+            }
+        }
+        
+        reference.setData(data, completion: completion)
+    }
 }
-
-

@@ -8,12 +8,5 @@
 import SwiftUI
 
 public extension EnvironmentValues {
-    var firebaseAuth: FirebaseAuthController {
-        get {
-            return self[FirebaseAuthControllerKey.self]
-        }
-        set {
-            self[FirebaseAuthControllerKey.self] = newValue
-        }
-    }
+    @Entry var firebaseAuth = FirebaseAuthController()
 }
